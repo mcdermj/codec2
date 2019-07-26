@@ -1,8 +1,12 @@
-% Copyright David Rowe 2009
-% This program is distributed under the terms of the GNU General Public License 
-% Version 2
+% plnlp.m
 %
-% Plot NLP states from dump files.
+% Plot NLP states from dump files, used to debug and explore pitch estimator operation.
+%
+#{
+  usage:
+    codec2/build_linux/misc$ ./tnlp t8.raw t.p --dump t
+    octave:29> plnlp("../build_linux/misc/t",55)
+#}
 
 function plnlp(samname, f)
   
@@ -47,14 +51,14 @@ function plnlp(samname, f)
 
     figure(2);
     plot((0:255)*4000/256, Sw(f,:),";Sw;");
-    grid
+    grid;
     axis([1 4000 -10 80]);
     hold on;
 
-    f0 = 8000/p(f);
-    Wo = 2*pi/p(f);
+    f0 = 8000/p(f,2);
+    Wo = 2*pi/p(f,2);
     L = floor(pi/Wo);
-    f0_label = sprintf("b;P=%3.1f F0=%3.0f;",p(f),f0);
+    f0_label = sprintf("b;P=%3.1f F0=%3.0f;",p(f,2),f0);
     for m=1:L-1
       plot([ m*Wo*4000/pi m*Wo*4000/pi], [10 60], 'b');
     endfor
@@ -80,7 +84,7 @@ function plnlp(samname, f)
     if (file_in_path(".",sq_name))
       figure(4);
       sq_concat = [ sq(2*f-1,:) sq(2*f,:) ];
-      axis
+      axis;
       plot(sq_concat, ";sq;");
     endif
 

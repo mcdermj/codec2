@@ -4,7 +4,8 @@
   AUTHOR......: David Rowe
   DATE CREATED: 23/3/93
 
-  Test program for non linear pitch estimation functions.
+  Test program for non linear pitch estimation functions.  See also 
+   octave/plnlp.m
 
 \*---------------------------------------------------------------------------*/
 
