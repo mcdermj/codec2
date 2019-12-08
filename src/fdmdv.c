@@ -1026,7 +1026,7 @@ void rxdec_filter(COMP rx_fdm_filter[], COMP rx_fdm[], COMP rxdec_lpf_mem[], int
   SIMD instructions to accelerate the FIR filter calculations.
 
 \*---------------------------------------------------------------------------*/
-static inline void fir_filter2(float acc[2], float mem[], const float coeff[], const unsigned int dec_rate) {
+static void fir_filter2(float acc[2], float mem[], const float coeff[], const unsigned int dec_rate) {
     assert(dec_rate % 4 == 0);
 
     float32x4x2_t mem_val;
