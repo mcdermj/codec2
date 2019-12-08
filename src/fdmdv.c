@@ -37,6 +37,11 @@
 #include <string.h>
 #include <math.h>
 
+#ifdef __ARM_NEON
+#include <arm_neon.h>
+#include <assert.h>
+#endif
+
 #include "fdmdv_internal.h"
 #include "codec2_fdmdv.h"
 #include "comp_prim.h"
@@ -1008,6 +1013,50 @@ void rxdec_filter(COMP rx_fdm_filter[], COMP rx_fdm[], COMP rxdec_lpf_mem[], int
     }
 }
 
+
+#ifdef __ARM_NEON
+#warning "Using NEON fir_filter2()"
+/*---------------------------------------------------------------------------*\
+
+  FUNCTION....: fir_filter2()
+  AUTHOR......: Annaliese McDermond
+  DATE CREATED: November 2019
+
+  Ths version submitted by Annaliese for the ARM NEON platforms.  This uses
+  SIMD instructions to accelerate the FIR filter calculations.
+
+\*---------------------------------------------------------------------------*/
+static inline void fir_filter2(float acc[2], float mem[], const float coeff[], const unsigned int dec_rate) {
+    assert(dec_rate % 4 == 0);
+
+    float32x4x2_t mem_val;
+    float32x4x2_t accum_val = {0};
+    float32x4_t coeff_val;
+    float32x2x2_t result_val = {0};
+
+    float *mem_ptr =  mem;
+    float *coeff_ptr = (float *) coeff;
+
+    for (unsigned int i = 0; i < dec_rate; i += 4) {
+        mem_val = vld2q_f32(mem_ptr);
+        coeff_val = vld1q_f32(coeff_ptr);
+        __builtin_prefetch(mem_ptr + 8);
+        __builtin_prefetch(coeff_ptr + 4);
+
+        accum_val.val[0] = vmlaq_f32(accum_val.val[0], mem_val.val[0], coeff_val);
+        accum_val.val[1] = vmlaq_f32(accum_val.val[1], mem_val.val[1], coeff_val);
+
+        mem_ptr += 8;
+        coeff_ptr += 4;
+    }
+
+    result_val.val[0] = vadd_f32(vget_high_f32(accum_val.val[0]), vget_low_f32(accum_val.val[0]));
+    result_val.val[1] = vadd_f32(vget_high_f32(accum_val.val[1]), vget_low_f32(accum_val.val[1]));
+
+    acc[0] = result_val.val[0][0] + result_val.val[0][1];
+    acc[1] = result_val.val[1][0] + result_val.val[1][1];
+}
+#else
 /*---------------------------------------------------------------------------*\
 
   FUNCTION....: fir_filter2()
@@ -1101,6 +1150,8 @@ static void fir_filter2(float acc[2], float mem[], const float coeff[], const un
     acc[0] *= dec_rate;
     acc[1] *= dec_rate;
 }
+#endif
+
 
 /*---------------------------------------------------------------------------*\
 
@@ -1214,8 +1265,8 @@ void down_convert_and_rx_filter(COMP rx_filt[NC+1][P+1], int Nc, COMP rx_fdm[],
         /* normalise digital oscilators as the magnitude can drift over time */
 
         mag = cabsolute(phase_rx[c]);
-	phase_rx[c].real /= mag;
-	phase_rx[c].imag /= mag;
+	    phase_rx[c].real /= mag;
+	    phase_rx[c].imag /= mag;
 
        //printf("phase_rx[%d] = %f %f\n", c, phase_rx[c].real, phase_rx[c].imag);
     }
