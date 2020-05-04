@@ -32,7 +32,7 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef __EMBEDDED__
+#if defined(__EMBEDDED__) && defined(__STM32F40_41xxx__)
 #include "gdb_stdio.h"
 #define fprintf gdb_stdio_fprintf
 #define fopen gdb_stdio_fopen
