@@ -32,7 +32,7 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef __EMBEDDED__
+#ifdef NONE
 #include "gdb_stdio.h"
 #define fprintf gdb_stdio_fprintf
 #define fopen gdb_stdio_fopen
