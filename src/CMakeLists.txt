@@ -84,7 +84,7 @@ set(CODEBOOKSNEWAMP2_ENERGY
 #endif(CMAKE_CROSSCOMPILING)
 # when crosscompiling import the executable targets from a file
 IF(CMAKE_CROSSCOMPILING)
-    SET(IMPORT_EXECUTABLES "IMPORTFILE-NOTFOUND" CACHE FILEPATH "Point it to the export file from a native build")
+    SET(IMPORT_EXECUTABLES ${CMAKE_BINARY_DIR}/ImportExecutables.cmake CACHE FILEPATH "Point it to the export file from a native build")
     INCLUDE(${IMPORT_EXECUTABLES})
 ENDIF(CMAKE_CROSSCOMPILING)
 
