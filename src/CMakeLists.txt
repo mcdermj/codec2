@@ -2,172 +2,130 @@
 # Generated sources
 #
 
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/codebook")
+execute_process(COMMAND cmake -S ${CMAKE_CURRENT_SOURCE_DIR}/codebook -B ${CMAKE_CURRENT_BINARY_DIR}/codebook)
+execute_process(COMMAND cmake --build ${CMAKE_CURRENT_BINARY_DIR}/codebook)
+include(${CMAKE_CURRENT_BINARY_DIR}/codebook/ImportExecutables.cmake)
+
 set(D ${CMAKE_CURRENT_SOURCE_DIR}/codebook)
 
 # lsp quantisers (2400/1400/1300 modes)
 set(CODEBOOKS
-    ${D}/lsp1.txt
-    ${D}/lsp2.txt
-    ${D}/lsp3.txt
-    ${D}/lsp4.txt
-    ${D}/lsp5.txt
-    ${D}/lsp6.txt
-    ${D}/lsp7.txt
-    ${D}/lsp8.txt
-    ${D}/lsp9.txt
-    ${D}/lsp10.txt
-)
+        ${D}/lsp1.txt
+        ${D}/lsp2.txt
+        ${D}/lsp3.txt
+        ${D}/lsp4.txt
+        ${D}/lsp5.txt
+        ${D}/lsp6.txt
+        ${D}/lsp7.txt
+        ${D}/lsp8.txt
+        ${D}/lsp9.txt
+        ${D}/lsp10.txt
+        )
 
 # lspd quantisers (3200 mode)
 set(CODEBOOKSD
-    ${D}/dlsp1.txt
-    ${D}/dlsp2.txt
-    ${D}/dlsp3.txt
-    ${D}/dlsp4.txt
-    ${D}/dlsp5.txt
-    ${D}/dlsp6.txt
-    ${D}/dlsp7.txt
-    ${D}/dlsp8.txt
-    ${D}/dlsp9.txt
-    ${D}/dlsp10.txt
-)
+        ${D}/dlsp1.txt
+        ${D}/dlsp2.txt
+        ${D}/dlsp3.txt
+        ${D}/dlsp4.txt
+        ${D}/dlsp5.txt
+        ${D}/dlsp6.txt
+        ${D}/dlsp7.txt
+        ${D}/dlsp8.txt
+        ${D}/dlsp9.txt
+        ${D}/dlsp10.txt
+        )
 
 # LSP VQ (1200 mode)
 set(CODEBOOKSJVM
-    ${D}/lspjvm1.txt
-    ${D}/lspjvm2.txt
-    ${D}/lspjvm3.txt
-)
+        ${D}/lspjvm1.txt
+        ${D}/lspjvm2.txt
+        ${D}/lspjvm3.txt
+        )
 
 # Joint Wo-energy VQ (1200 mode)
 set(CODEBOOKSGE ${D}/gecb.txt)
 
 # 700C two stage VQ
 set(CODEBOOKSNEWAMP1
-    ${D}/train_120_1.txt
-    ${D}/train_120_2.txt
-)
+        ${D}/train_120_1.txt
+        ${D}/train_120_2.txt
+        )
 
 set(CODEBOOKSNEWAMP1_ENERGY
-    ${D}/newamp1_energy_q.txt
-)
+        ${D}/newamp1_energy_q.txt
+        )
 
 # 450 mode two stage VQ
 set(CODEBOOKSNEWAMP2
-    ${D}/codes_450.txt
-)
+        ${D}/codes_450.txt
+        )
 
 set(CODEBOOKSNEWAMP2_ENERGY
-    ${D}/newamp2_energy_q.txt
-)
-
-# when crosscompiling we need a native executable
-#if(CMAKE_CROSSCOMPILING)
-#    include(ExternalProject)
-#    ExternalProject_Add(codec2_native
-#       SOURCE_DIR ${CMAKE_SOURCE_DIR}
-#       BUILD_COMMAND $(MAKE) generate_codebook
-#       INSTALL_COMMAND ${CMAKE_COMMAND} -E copy src/generate_codebook ${CMAKE_CURRENT_BINARY_DIR}
-#    )
-#    add_executable(generate_codebook IMPORTED)
-#    set_target_properties(generate_codebook PROPERTIES
-#        IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/generate_codebook)
-#    add_dependencies(generate_codebook codec2_native)
-#else(CMAKE_CROSSCOMPILING)
-## Build code generator binaries. These do not get installed.
-#    # generate_codebook
-#    add_executable(generate_codebook generate_codebook.c)
-#    target_link_libraries(generate_codebook m ${CMAKE_REQUIRED_LIBRARIES})
-#    # Make native builds available for cross-compiling.
-#    export(TARGETS generate_codebook
-#        FILE ${CMAKE_BINARY_DIR}/ImportExecutables.cmake)
-#endif(CMAKE_CROSSCOMPILING)
-# when crosscompiling import the executable targets from a file
-IF(CMAKE_CROSSCOMPILING)
-    SET(IMPORT_EXECUTABLES ${CMAKE_BINARY_DIR}/ImportExecutables.cmake CACHE FILEPATH "Point it to the export file from a native build")
-    INCLUDE(${IMPORT_EXECUTABLES})
-ENDIF(CMAKE_CROSSCOMPILING)
-
-# always build the executable
-add_executable(generate_codebook generate_codebook.c)
-target_link_libraries(generate_codebook m ${CMAKE_REQUIRED_LIBRARIES})
-
-# but use different names for the command
-IF(CMAKE_CROSSCOMPILING)
-SET(generate_codebook_EXE native-generate_codebook)
-ELSE(CMAKE_CROSSCOMPILING)
-SET(generate_codebook_EXE generate_codebook)
-ENDIF(CMAKE_CROSSCOMPILING)
-
-## then use the target name as COMMAND, CMake >= 2.6 knows how to handle this
-#add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generate_codebook.c
-#COMMAND ${generate_codebook_EXE} foo.dat -o ${CMAKE_CURRENT_BINARY_DIR}/generated.c
-#DEPENDS foo.dat )
-
-
-# export the generator target to a file, so it can be imported (see above) by another build
-# the IF() is not necessary, but makes the intention clearer
-# use the NAMESPACE option of EXPORT() to get a different target name for mygenerator when exporting
-IF(NOT CMAKE_CROSSCOMPILING)
-EXPORT(TARGETS generate_codebook FILE ${CMAKE_BINARY_DIR}/ImportExecutables.cmake NAMESPACE native- )
-ENDIF(NOT CMAKE_CROSSCOMPILING)
-
+        ${D}/newamp2_energy_q.txt
+        )
 
 # codebook.c
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebook.c
-    COMMAND ${generate_codebook_EXE} lsp_cb ${CODEBOOKS} > ${CMAKE_CURRENT_BINARY_DIR}/codebook.c
-    DEPENDS ${CODEBOOKS}
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebook.c
+        COMMAND native-generate_codebook lsp_cb ${CODEBOOKS} > ${CMAKE_CURRENT_BINARY_DIR}/codebook.c
+        DEPENDS ${CODEBOOKS}
 )
 
 # codebookd.c
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebookd.c
-    COMMAND ${generate_codebook_EXE} lsp_cbd ${CODEBOOKSD} > ${CMAKE_CURRENT_BINARY_DIR}/codebookd.c
-    DEPENDS ${CODEBOOKSD}
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebookd.c
+        COMMAND native-generate_codebook lsp_cbd ${CODEBOOKSD} > ${CMAKE_CURRENT_BINARY_DIR}/codebookd.c
+        DEPENDS ${CODEBOOKSD}
 )
 
 # codebookjvm.c
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebookjvm.c
-    COMMAND ${generate_codebook_EXE} lsp_cbjvm ${CODEBOOKSJVM} > ${CMAKE_CURRENT_BINARY_DIR}/codebookjvm.c
-    DEPENDS ${CODEBOOKSJVM}
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebookjvm.c
+        COMMAND native-generate_codebook lsp_cbjvm ${CODEBOOKSJVM} > ${CMAKE_CURRENT_BINARY_DIR}/codebookjvm.c
+        DEPENDS ${CODEBOOKSJVM}
 )
 
 # codebookge.c
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebookge.c
-    COMMAND ${generate_codebook_EXE} ge_cb ${CODEBOOKSGE} > ${CMAKE_CURRENT_BINARY_DIR}/codebookge.c
-    DEPENDS ${CODEBOOKSGE}
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebookge.c
+        COMMAND native-generate_codebook ge_cb ${CODEBOOKSGE} > ${CMAKE_CURRENT_BINARY_DIR}/codebookge.c
+        DEPENDS ${CODEBOOKSGE}
 )
 
 # codebooknewamp1.c
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp1.c
-    COMMAND ${generate_codebook_EXE} newamp1vq_cb ${CODEBOOKSNEWAMP1} > ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp1.c
-    DEPENDS ${CODEBOOKSNEWAMP1}
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp1.c
+        COMMAND native-generate_codebook newamp1vq_cb ${CODEBOOKSNEWAMP1} > ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp1.c
+        DEPENDS ${CODEBOOKSNEWAMP1}
 )
 
 # codebooknewamp1_energy.c
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp1_energy.c
-    COMMAND ${generate_codebook_EXE} newamp1_energy_cb ${CODEBOOKSNEWAMP1_ENERGY} > ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp1_energy.c
-    DEPENDS ${CODEBOOKSNEWAMP1_ENERGY}
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp1_energy.c
+        COMMAND native-generate_codebook newamp1_energy_cb ${CODEBOOKSNEWAMP1_ENERGY} > ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp1_energy.c
+        DEPENDS ${CODEBOOKSNEWAMP1_ENERGY}
 )
 
 # codebooknewamp2.c
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp2.c
-    COMMAND ${generate_codebook_EXE} newamp2vq_cb ${CODEBOOKSNEWAMP2} > ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp2.c
-    DEPENDS ${CODEBOOKSNEWAMP2}
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp2.c
+        COMMAND native-generate_codebook newamp2vq_cb ${CODEBOOKSNEWAMP2} > ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp2.c
+        DEPENDS ${CODEBOOKSNEWAMP2}
 )
 
 # codebooknewamp2_energy.c
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp2_energy.c
-    COMMAND ${generate_codebook_EXE} newamp2_energy_cb ${CODEBOOKSNEWAMP2_ENERGY} > ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp2_energy.c
-    DEPENDS ${CODEBOOKSNEWAMP2_ENERGY}
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp2_energy.c
+        COMMAND native-generate_codebook newamp2_energy_cb ${CODEBOOKSNEWAMP2_ENERGY} > ${CMAKE_CURRENT_BINARY_DIR}/codebooknewamp2_energy.c
+        DEPENDS ${CODEBOOKSNEWAMP2_ENERGY}
 )
+
+
+
+
+
 
 #
 # codec2 library sources
